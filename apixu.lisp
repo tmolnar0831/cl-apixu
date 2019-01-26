@@ -3,9 +3,11 @@
 ;;;; License: MIT
 
 (defpackage :apixu
+  (:nicknames :cl-apixu)
   (:use "COMMON-LISP"
         "API-KEY")
-  (:export "MAIN"))
+  (:export "APIXU-QUERY"
+           "COMBINE-URI"))
 
 (in-package :apixu)
 
@@ -18,7 +20,10 @@
 
 (defun aget (alist key) (cdr (assoc key alist)))
 
-(defun combine-uri (api-uri api-version api-method api-format)
+(defun combine-uri (&key (api-uri *api-uri*)
+                      (api-version *api-version*)
+                      (api-method *api-method*)
+                      (api-format *api-format*))
   (format nil "~A/v~A/~A.~A" api-uri api-version api-method api-format))
 
 (define-condition apixu-api-error (error)
@@ -27,7 +32,7 @@
   (:report (lambda (condition stream)
              (write-string (apixu-api-error-message condition) stream))))
 
-(defun apixu-query (uri location)
+(defun apixu-query (location &optional (uri (combine-uri)))
   (let* ((json-response (babel:octets-to-string (drakma:http-request uri
                                                                      :method :get
                                                                      :parameters (list (cons "q" location)
